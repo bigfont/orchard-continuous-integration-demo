@@ -20,22 +20,21 @@ IF %ERRORLEVEL% NEQ 0 (
 
 setlocal enabledelayedexpansion
 
-:: FOR_ORCHARD, we changed to this from temp
-SET SITE_DIR=%~dp0%..
+SET ARTIFACTS=%~dp0%..\artifacts
 
 IF NOT DEFINED DEPLOYMENT_SOURCE (
   SET DEPLOYMENT_SOURCE=%~dp0%.
 )
 
 IF NOT DEFINED DEPLOYMENT_TARGET (
-  SET DEPLOYMENT_TARGET=%SITE_DIR%\wwwroot
+  SET DEPLOYMENT_TARGET=%ARTIFACTS%\wwwroot
 )
 
 IF NOT DEFINED NEXT_MANIFEST_PATH (
-  SET NEXT_MANIFEST_PATH=%SITE_DIR%\manifest
+  SET NEXT_MANIFEST_PATH=%ARTIFACTS%\manifest
 
   IF NOT DEFINED PREVIOUS_MANIFEST_PATH (
-    SET PREVIOUS_MANIFEST_PATH=%SITE_DIR%\manifest
+    SET PREVIOUS_MANIFEST_PATH=%ARTIFACTS%\manifest
   )
 )
 
@@ -49,7 +48,7 @@ IF NOT DEFINED KUDU_SYNC_CMD (
   SET KUDU_SYNC_CMD=%appdata%\npm\kuduSync.cmd
 )
 IF NOT DEFINED DEPLOYMENT_TEMP (
-  SET DEPLOYMENT_TEMP="%DEPLOYMENT_SOURCE%\build\precompiled"
+  SET DEPLOYMENT_TEMP=%temp%\___deployTemp%random%
   SET CLEAN_LOCAL_DEPLOYMENT_TEMP=true
 )
 
@@ -76,19 +75,16 @@ IF /I "src\Orchard.sln" NEQ "" (
 
 :: 2. Build to the temporary path
 IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
-  call :ExecuteCmd "%MSBUILD_PATH%" "%DEPLOYMENT_SOURCE%\orchard.proj" /nologo /verbosity:m /t:Precompiled /p:AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release /p:SolutionDir="%DEPLOYMENT_SOURCE%\src\\" %SCM_BUILD_ARGS%
-
+  call :ExecuteCmd "%MSBUILD_PATH%" "%DEPLOYMENT_SOURCE%\src\Orchard.Web\Orchard.csproj" /nologo /verbosity:m /t:Build /t:pipelinePreDeployCopyAllFilesToOneFolder /p:_PackageTempDir="%DEPLOYMENT_TEMP%";AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release /p:SolutionDir="%DEPLOYMENT_SOURCE%\src\\" %SCM_BUILD_ARGS%
 ) ELSE (
-  call :ExecuteCmd "%MSBUILD_PATH%" "%DEPLOYMENT_SOURCE%\orchard.proj" /nologo /verbosity:m /t:Precompiled /p:AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release /p:SolutionDir="%DEPLOYMENT_SOURCE%\src\\" %SCM_BUILD_ARGS%
+  call :ExecuteCmd "%MSBUILD_PATH%" "%DEPLOYMENT_SOURCE%\src\Orchard.Web\Orchard.csproj" /nologo /verbosity:m /t:Build /p:AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release /p:SolutionDir="%DEPLOYMENT_SOURCE%\src\\" %SCM_BUILD_ARGS%
 )
 
 IF !ERRORLEVEL! NEQ 0 goto error
 
 :: 3. KuduSync
 IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
-
   call :ExecuteCmd "%KUDU_SYNC_CMD%" -v 50 -f "%DEPLOYMENT_TEMP%" -t "%DEPLOYMENT_TARGET%" -n "%NEXT_MANIFEST_PATH%" -p "%PREVIOUS_MANIFEST_PATH%" -i ".git;.hg;.deployment;deploy.cmd"
-
   IF !ERRORLEVEL! NEQ 0 goto error
 )
 
