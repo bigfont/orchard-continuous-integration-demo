@@ -66,20 +66,17 @@ IF NOT DEFINED MSBUILD_PATH (
 :: ----------
 
 echo Handling .NET Web Application deployment.
-pause > nul
 
 :: 1. Restore NuGet packages
 IF /I "src\Orchard.sln" NEQ "" (
  
   echo Nuget
   echo %DEPLOYMENT_SOURCE%\src\Orchard.sln"
-  pause > nul
 
   call :ExecuteCmd nuget restore "%DEPLOYMENT_SOURCE%\src\Orchard.sln"
   IF !ERRORLEVEL! NEQ 0 goto error
 
   echo End Nuget
-  pause > nul
 
 )
 
@@ -117,7 +114,6 @@ exit /b %ERRORLEVEL%
 :error
 endlocal
 echo An error has occurred during web site deployment.
-pause > nul
 call :exitSetErrorLevel
 call :exitFromFunction 2>nul
 
@@ -130,5 +126,3 @@ exit /b 1
 :end
 endlocal
 echo Finished successfully.
-
-pause > nul
