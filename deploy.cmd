@@ -22,8 +22,6 @@ setlocal enabledelayedexpansion
 
 SET ARTIFACTS=%~dp0%..\artifacts
 
-SET DEPLOYMENT_SOURCE=C:\Users\BigFont\orchard
-
 IF NOT DEFINED DEPLOYMENT_SOURCE (
   SET DEPLOYMENT_SOURCE=%~dp0%.
 )
