@@ -48,7 +48,7 @@ IF NOT DEFINED KUDU_SYNC_CMD (
   SET KUDU_SYNC_CMD=%appdata%\npm\kuduSync.cmd
 )
 IF NOT DEFINED DEPLOYMENT_TEMP (
-  SET DEPLOYMENT_TEMP=%temp%\___deployTemp%random%
+  SET DEPLOYMENT_TEMP="%DEPLOYMENT_SOURCE%\build\precompiled"
   SET CLEAN_LOCAL_DEPLOYMENT_TEMP=true
 )
 
@@ -82,10 +82,6 @@ IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
 )
 
 IF !ERRORLEVEL! NEQ 0 goto error
-
-:: 3. BigFont, set file from which to deploy
-SET DEPLOYMENT_TEMP="%DEPLOYMENT_SOURCE%\build\precompiled"
-echo "%DEPLOYMENT_TEMP%"
 
 :: 3. KuduSync
 IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
