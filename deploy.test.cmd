@@ -78,6 +78,48 @@ IF NOT DEFINED MSBUILD_PATH (
 :: ----------
 
 
+echo Handling .NET Web Application deployment.
+
+:: 1. Restore NuGet packages
+IF /I "src\Orchard.sln" NEQ "" (
+
+  echo Restoring NuGet packages
+
+  call :ExecuteCmd nuget restore "%DEPLOYMENT_SOURCE%\src\Orchard.sln"
+  IF !ERRORLEVEL! NEQ 0 goto error
+)
+
+:: 2. Build to the temporary path
+IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
+
+  echo Running build precompiled
+
+  call :ExecuteCmd "%MSBUILD_PATH%" "%DEPLOYMENT_SOURCE%\orchard.proj" /nologo /verbosity:m /t:Precompiled /p:AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release /p:SolutionDir="%DEPLOYMENT_SOURCE%\src\\" %SCM_BUILD_ARGS%
+
+) ELSE (
+
+  echo Warning: we don't usually performing build precompiled for in place deployment
+
+  call :ExecuteCmd "%MSBUILD_PATH%" "%DEPLOYMENT_SOURCE%\orchard.proj" /nologo /verbosity:m /t:Precompiled /p:AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release /p:SolutionDir="%DEPLOYMENT_SOURCE%\src\\" %SCM_BUILD_ARGS%
+)
+
+IF !ERRORLEVEL! NEQ 0 goto error
+
+:: 3. KuduSync
+IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
+
+  echo Copying build results to wwwroot
+  echo "%DEPLOYMENT_TEMP%"
+  echo "%DEPLOYMENT_TARGET%"
+  echo "%NEXT_MANIFEST_PATH%"
+  echo "%PREVIOUS_MANIFEST_PATH%"
+
+  call :ExecuteCmd "%KUDU_SYNC_CMD%" -v 50 -f "%DEPLOYMENT_TEMP%" -t "%DEPLOYMENT_TARGET%" -n "%NEXT_MANIFEST_PATH%" -p "%PREVIOUS_MANIFEST_PATH%" -i ".git;.hg;.deployment;deploy.cmd"
+
+  IF !ERRORLEVEL! NEQ 0 goto error
+)
+
+
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :: Post deployment stub
