@@ -1,2 +1,2 @@
 [config]
-command = deploy.test.cmd
+command = deploy.cmd
