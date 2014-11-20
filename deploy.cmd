@@ -59,6 +59,8 @@ IF NOT DEFINED DEPLOYMENT_TEMP (
   SET CLEAN_LOCAL_DEPLOYMENT_TEMP=true
 )
 
+echo DEPLOYMENT_TEMP: "%DEPLOYMENT_TEMP%"
+
 IF DEFINED CLEAN_LOCAL_DEPLOYMENT_TEMP (
   
   echo Cleaning local deployment temp.
@@ -106,6 +108,10 @@ IF !ERRORLEVEL! NEQ 0 goto error
 IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
 
   echo Copying build results to wwwroot
+  echo "%DEPLOYMENT_TEMP%"
+  echo "%DEPLOYMENT_TARGET%"
+  echo "%NEXT_MANIFEST_PATH%"
+  echo "%PREVIOUS_MANIFEST_PATH%"
 
   call :ExecuteCmd "%KUDU_SYNC_CMD%" -v 50 -f "%DEPLOYMENT_TEMP%" -t "%DEPLOYMENT_TARGET%" -n "%NEXT_MANIFEST_PATH%" -p "%PREVIOUS_MANIFEST_PATH%" -i ".git;.hg;.deployment;deploy.cmd"
 
