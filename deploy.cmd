@@ -20,16 +20,18 @@ IF %ERRORLEVEL% NEQ 0 (
 
 setlocal enabledelayedexpansion
 
-:: FOR_ORCHARD
+
+:: #region ORCHARD ENVIRONMENTAL VARIABLES
 :: ------------
 SET SITE_DIR=%~dp0%..
 SET DEPLOYMENT_SOURCE=%~dp0%.
 SET DEPLOYMENT_TARGET=%SITE_DIR%\wwwroot
 SET DEPLOYMENT_TEMP="%DEPLOYMENT_SOURCE%\build\precompiled"
 SET CLEAN_LOCAL_DEPLOYMENT_TEMP=true
-
-:: END FOR_ORCHARD
+SET IN_PLACE_DEPLOYMENT=1
+:: #endregion ORCHARD ENVIRONMENTAL VARIABLES
 :: ---------------
+
 
 SET ARTIFACTS=%~dp0%..\artifacts
 
@@ -84,11 +86,11 @@ IF /I "src\Orchard.sln" NEQ "" (
   IF !ERRORLEVEL! NEQ 0 goto error
 )
 
-:: 2. Build to the temporary path
+:: 2. Build 
 IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
   call :ExecuteCmd "%MSBUILD_PATH%" "%DEPLOYMENT_SOURCE%\Orchard.proj" /nologo /verbosity:m /t:Build /t:pipelinePreDeployCopyAllFilesToOneFolder /p:_PackageTempDir="%DEPLOYMENT_TEMP%";AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release /p:SolutionDir="%DEPLOYMENT_SOURCE%\src\\" %SCM_BUILD_ARGS%
 ) ELSE (
-  call :ExecuteCmd "%MSBUILD_PATH%" "%DEPLOYMENT_SOURCE%\Orchard.proj" /nologo /verbosity:m /t:Build /p:AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release /p:SolutionDir="%DEPLOYMENT_SOURCE%\src\\" %SCM_BUILD_ARGS%
+  call :ExecuteCmd "%MSBUILD_PATH%" "%DEPLOYMENT_SOURCE%\Orchard.proj" /nologo /verbosity:m /t:Precompiled /p:AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release /p:SolutionDir="%DEPLOYMENT_SOURCE%\src\\" %SCM_BUILD_ARGS%
 )
 
 IF !ERRORLEVEL! NEQ 0 goto error
