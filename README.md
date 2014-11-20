@@ -10,7 +10,7 @@ Copy and paste the following two files into your repository root. Then push.
 - `.deployment`
 - `deploy.orchard.cmd`
 
-If the continuous integration doesn't "just work", you might have build problems in your remote server.
+If the continuous integration doesn't "just work", you might have build problems that are not related to Kudu (such as missing files in your repo.)
 
 ## More Info
 
