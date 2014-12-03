@@ -32,7 +32,21 @@ SET CLEAN_LOCAL_DEPLOYMENT_TEMP=true
 :: ---------------
 
 
-SET ARTIFACTS=%~dp0%..\artifacts
+SET ARTIFACTS=%SITE_DIR%\artifacts
+
+
+:: #region For local testing, create artifacts dir
+:: ------------
+IF NOT EXIST ARTIFACTS (
+  echo Not exists
+  echo Making dir
+  mkdir ARTIFACTS
+  pause > nul
+  exit /b  
+)
+:: ------------
+:: #endregion
+
 
 IF NOT DEFINED DEPLOYMENT_SOURCE (
   SET DEPLOYMENT_SOURCE=%~dp0%.
@@ -119,6 +133,7 @@ exit /b %ERRORLEVEL%
 :error
 endlocal
 echo An error has occurred during web site deployment.
+pause > nul
 call :exitSetErrorLevel
 call :exitFromFunction 2>nul
 
