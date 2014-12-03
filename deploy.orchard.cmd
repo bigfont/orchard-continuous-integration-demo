@@ -38,11 +38,7 @@ SET ARTIFACTS=%SITE_DIR%\artifacts
 :: #region For local testing, create artifacts dir
 :: ------------
 IF NOT EXIST ARTIFACTS (
-  echo Not exists
-  echo Making dir
   mkdir ARTIFACTS
-  pause > nul
-  exit /b  
 )
 :: ------------
 :: #endregion
