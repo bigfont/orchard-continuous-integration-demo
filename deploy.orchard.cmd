@@ -20,7 +20,29 @@ IF %ERRORLEVEL% NEQ 0 (
 
 setlocal enabledelayedexpansion
 
-SET ARTIFACTS=%~dp0%..\artifacts
+
+:: #region ORCHARD ENVIRONMENTAL VARIABLES
+:: ------------
+SET SITE_DIR=%~dp0%..
+SET DEPLOYMENT_SOURCE=%~dp0%.
+SET DEPLOYMENT_TARGET=%SITE_DIR%\wwwroot
+SET DEPLOYMENT_TEMP="%DEPLOYMENT_SOURCE%\build\precompiled"
+SET CLEAN_LOCAL_DEPLOYMENT_TEMP=true
+:: ---------------
+:: #endregion ORCHARD ENVIRONMENTAL VARIABLES
+
+
+SET ARTIFACTS=%SITE_DIR%\artifacts
+
+
+:: #region For local testing, create artifacts dir
+:: ------------
+IF NOT EXIST ARTIFACTS (
+  mkdir ARTIFACTS
+)
+:: ------------
+:: #endregion
+
 
 IF NOT DEFINED DEPLOYMENT_SOURCE (
   SET DEPLOYMENT_SOURCE=%~dp0%.
@@ -75,9 +97,9 @@ IF /I "src\Orchard.sln" NEQ "" (
 
 :: 2. Build to the temporary path
 IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
-  call :ExecuteCmd "%MSBUILD_PATH%" "%DEPLOYMENT_SOURCE%\Orchard.proj" /nologo /verbosity:m /t:Precompiled /t:pipelinePreDeployCopyAllFilesToOneFolder /p:_PackageTempDir="%DEPLOYMENT_TEMP%";AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release /p:SolutionDir="%DEPLOYMENT_SOURCE%\src\\" %SCM_BUILD_ARGS%
-) ELSE (
   call :ExecuteCmd "%MSBUILD_PATH%" "%DEPLOYMENT_SOURCE%\Orchard.proj" /nologo /verbosity:m /t:Precompiled /p:AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release /p:SolutionDir="%DEPLOYMENT_SOURCE%\src\\" %SCM_BUILD_ARGS%
+) ELSE (
+  call :ExecuteCmd "%MSBUILD_PATH%" "%DEPLOYMENT_SOURCE%\Orchard.proj" /nologo /verbosity:m /t:Build /p:AutoParameterizationWebConfigConnectionStrings=false;Configuration=Release /p:SolutionDir="%DEPLOYMENT_SOURCE%\src\\" %SCM_BUILD_ARGS%
 )
 
 IF !ERRORLEVEL! NEQ 0 goto error
@@ -107,6 +129,7 @@ exit /b %ERRORLEVEL%
 :error
 endlocal
 echo An error has occurred during web site deployment.
+pause > nul
 call :exitSetErrorLevel
 call :exitFromFunction 2>nul
 
